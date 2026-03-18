@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Youtube, Music, Video, History, Clipboard, Trash2, 
-  CheckCircle, AlertCircle, Loader2, Play, Download, 
+import {
+  Youtube, Music, Video, History, Clipboard, Trash2,
+  CheckCircle, AlertCircle, Loader2, Play, Download,
   Copy, ExternalLink, ChevronDown, Check, X, Sparkles
 } from 'lucide-react';
 import axios from 'axios';
@@ -15,7 +15,7 @@ function cn(...inputs) {
   return twMerge(clsx(inputs));
 }
 
-const API_BASE = 'http://localhost:5000';
+const API_BASE = 'https://nobilink-backend-production.up.railway.app';
 
 const QUALITIES = [
   { id: 'best', label: 'Ultra HD (Best)' },
@@ -85,6 +85,7 @@ export default function App() {
 
   const downloadContent = async (type) => {
     if (!videoInfo) return;
+
     setIsDownloading(type);
     setDownloadSuccess(null);
     setProgress(0);
@@ -102,16 +103,14 @@ export default function App() {
     try {
       const cleanUrl = normalizeUrl(url);
       const endpoint = type === 'mp3' ? '/download-mp3' : '/download-video';
+
       const downloadUrl = `${API_BASE}${endpoint}?url=${encodeURIComponent(cleanUrl)}&quality=${quality.id}`;
-      
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-      link.setAttribute('download', `${videoInfo.title}.${type}`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+
+      // ✅🔥 FINAL FIX (IMPORTANT)
+      window.open(downloadUrl, "_blank");
 
       setProgress(100);
+
       setTimeout(() => {
         setIsDownloading(null);
         setDownloadSuccess(type);
@@ -119,18 +118,20 @@ export default function App() {
       }, 800);
 
       const newHistory = [
-        { 
-          id: Date.now(), 
-          title: videoInfo.title, 
-          type, 
-          date: new Date().toLocaleDateString(), 
+        {
+          id: Date.now(),
+          title: videoInfo.title,
+          type,
+          date: new Date().toLocaleDateString(),
           thumbnail: videoInfo.thumbnail,
           url: cleanUrl
         },
         ...downloadHistory.filter(item => item.url !== cleanUrl).slice(0, 9)
       ];
+
       setDownloadHistory(newHistory);
       localStorage.setItem('nobilinkHistory', JSON.stringify(newHistory));
+
     } catch (err) {
       setError('Download failed. Please check your connection.');
       setIsDownloading(null);
@@ -185,7 +186,7 @@ export default function App() {
             <Sparkles className="w-3 h-3" />
             Next Gen Streaming Infrastructure
           </motion.div>
-          <motion.h1 
+          <motion.h1
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             className="text-7xl md:text-9xl font-black mb-8 tracking-tighter leading-[0.85] italic uppercase"
@@ -193,7 +194,7 @@ export default function App() {
             Instant Content <br />
             <span className="red-gradient-text">Downloader</span>
           </motion.h1>
-          <motion.p 
+          <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
@@ -202,7 +203,7 @@ export default function App() {
             Nobilink isn't just a tool; it's a precision instrument. Extract high-bitrate media from the platform instantly with zero compression loss.
           </motion.p>
 
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
@@ -213,9 +214,9 @@ export default function App() {
                 <div className="absolute left-8 top-1/2 -translate-y-1/2 text-white/10 group-focus-within:text-red-500 transition-all pointer-events-none">
                   <Youtube className="w-7 h-7" />
                 </div>
-                <input 
-                  type="text" 
-                  placeholder="Paste video link or drop URL here..." 
+                <input
+                  type="text"
+                  placeholder="Paste video link or drop URL here..."
                   className="w-full pl-20 pr-14 py-6 bg-transparent outline-none text-white font-bold text-lg placeholder:text-white/5 tracking-tight"
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
@@ -232,7 +233,7 @@ export default function App() {
                   </button>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={fetchVideoInfo}
                 disabled={loading || !url}
                 className="btn-premium ripple-effect flex items-center justify-center gap-4 min-w-[200px]"
@@ -241,7 +242,7 @@ export default function App() {
                 Process Link
               </button>
             </div>
-            
+
             {/* Visual Indicator of Focus */}
             <div className="absolute inset-0 -z-10 bg-red-600/5 blur-3xl opacity-0 group-focus-within:opacity-100 transition-opacity" />
           </motion.div>
@@ -250,9 +251,9 @@ export default function App() {
         {/* Results Area */}
         <AnimatePresence mode="wait">
           {loading && <SkeletonLoader key="skeleton" />}
-          
+
           {error && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.98 }}
@@ -270,7 +271,7 @@ export default function App() {
           )}
 
           {videoInfo && !loading && (
-            <motion.div 
+            <motion.div
               key="result"
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
@@ -278,14 +279,14 @@ export default function App() {
             >
               <div className="glass-card p-8 flex flex-col lg:flex-row gap-10 items-start">
                 <div className="relative group w-full lg:w-[450px] aspect-video rounded-[2.5rem] overflow-hidden shadow-3xl bg-black border border-white/5">
-                  <img 
-                    src={videoInfo.thumbnail} 
-                    alt={videoInfo.title} 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000 opacity-80" 
+                  <img
+                    src={videoInfo.thumbnail}
+                    alt={videoInfo.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000 opacity-80"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent opacity-60" />
                   <div className="absolute bottom-6 left-6 flex items-center gap-3">
-                     <div className="bg-white/10 backdrop-blur-xl px-4 py-2 rounded-xl text-xs font-black border border-white/10 uppercase tracking-widest">
+                    <div className="bg-white/10 backdrop-blur-xl px-4 py-2 rounded-xl text-xs font-black border border-white/10 uppercase tracking-widest">
                       {Math.floor(videoInfo.length / 60)}:{(videoInfo.length % 60).toString().padStart(2, '0')}
                     </div>
                   </div>
@@ -300,7 +301,7 @@ export default function App() {
 
                   <div className="space-y-6">
                     <div className="relative">
-                      <button 
+                      <button
                         onClick={() => setShowQualityDropdown(!showQualityDropdown)}
                         className="w-full bg-white/[0.03] border border-white/[0.08] px-8 py-5 rounded-[2rem] flex justify-between items-center hover:bg-white/[0.06] transition-all active:scale-[0.99] border-red-500/0 hover:border-red-500/20"
                       >
@@ -310,17 +311,17 @@ export default function App() {
                         </div>
                         <ChevronDown className={cn("w-6 h-6 transition-transform duration-500 text-white/20", showQualityDropdown && "rotate-180 text-red-500")} />
                       </button>
-                      
+
                       <AnimatePresence>
                         {showQualityDropdown && (
-                          <motion.div 
+                          <motion.div
                             initial={{ opacity: 0, y: 15, scale: 0.95 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 15, scale: 0.95 }}
                             className="absolute top-full left-0 w-full mt-3 glass-card p-3 z-50 border-white/10 bg-[#0a0a0aa0] backdrop-blur-[40px] shadow-3xl overflow-hidden"
                           >
                             {QUALITIES.map((q) => (
-                              <button 
+                              <button
                                 key={q.id}
                                 onClick={() => {
                                   setQuality(q);
@@ -341,7 +342,7 @@ export default function App() {
                     </div>
 
                     <div className="grid grid-cols-2 gap-5">
-                      <button 
+                      <button
                         onClick={() => downloadContent('mp4')}
                         disabled={isDownloading !== null}
                         className={cn(
@@ -352,7 +353,7 @@ export default function App() {
                         {downloadSuccess === 'mp4' ? <Check className="w-6 h-6 animate-bounce" /> : isDownloading === 'mp4' ? <Loader2 className="w-6 h-6 animate-spin text-red-500" /> : <Video className="w-6 h-6 mb-1" />}
                         {downloadSuccess === 'mp4' ? "Success" : "Export MP4"}
                       </button>
-                      <button 
+                      <button
                         onClick={() => downloadContent('mp3')}
                         disabled={isDownloading !== null}
                         className={cn(
@@ -360,7 +361,7 @@ export default function App() {
                           downloadSuccess === 'mp3' ? "bg-green-500 border-green-400 text-white" : "bg-white/[0.03] border-white/[0.08] hover:bg-white/[0.08] hover:border-red-500/30"
                         )}
                       >
-                         {downloadSuccess === 'mp3' ? <Check className="w-6 h-6 animate-bounce" /> : isDownloading === 'mp3' ? <Loader2 className="w-6 h-6 animate-spin text-red-500" /> : <Music className="w-6 h-6 mb-1" />}
+                        {downloadSuccess === 'mp3' ? <Check className="w-6 h-6 animate-bounce" /> : isDownloading === 'mp3' ? <Loader2 className="w-6 h-6 animate-spin text-red-500" /> : <Music className="w-6 h-6 mb-1" />}
                         {downloadSuccess === 'mp3' ? "Success" : "Convert MP3"}
                       </button>
                     </div>
@@ -370,7 +371,7 @@ export default function App() {
 
               {/* Enhanced Progress */}
               {isDownloading && (
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
                   className="space-y-5"
@@ -383,7 +384,7 @@ export default function App() {
                     <span className="text-red-500 font-mono">{progress}%</span>
                   </div>
                   <div className="h-3 w-full bg-white/[0.03] rounded-full overflow-hidden border border-white/5 p-0.5">
-                    <motion.div 
+                    <motion.div
                       className="h-full red-gradient shadow-[0_0_30px_rgba(255,0,0,0.6)] rounded-full"
                       initial={{ width: 0 }}
                       animate={{ width: `${progress}%` }}
@@ -398,7 +399,7 @@ export default function App() {
 
         {/* History Section */}
         {downloadHistory.length > 0 && (
-          <motion.section 
+          <motion.section
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="border-t border-white/[0.03] pt-24"
@@ -408,7 +409,7 @@ export default function App() {
                 <History className="w-10 h-10 text-red-600" />
                 History
               </h3>
-              <button 
+              <button
                 onClick={() => {
                   setDownloadHistory([]);
                   localStorage.removeItem('nobilinkHistory');
@@ -421,11 +422,11 @@ export default function App() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
               {downloadHistory.map((item, idx) => (
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.08 }}
-                  key={item.id} 
+                  key={item.id}
                   className="glass-card p-5 flex items-center gap-6 group hover:border-red-500/20 cursor-pointer relative overflow-hidden active:scale-[0.98]"
                   onClick={() => { setUrl(item.url); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                 >
@@ -442,9 +443,9 @@ export default function App() {
                     </div>
                   </div>
                   <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-                    <button 
-                      onClick={(e) => { 
-                        e.stopPropagation(); 
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
                         const updated = downloadHistory.filter(h => h.id !== item.id);
                         setDownloadHistory(updated);
                         localStorage.setItem('nobilinkHistory', JSON.stringify(updated));
@@ -465,13 +466,13 @@ export default function App() {
       <footer className="pt-32 pb-16 border-t border-white/[0.03] px-8 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-16 items-start mb-20 text-center md:text-left">
           <div className="space-y-6">
-             <div className="inline-flex items-center gap-3">
-                <div className="bg-red-600 w-8 h-8 rounded-xl flex items-center justify-center font-black text-lg italic border border-white/10">N</div>
-                <span className="text-xl font-black tracking-tighter uppercase italic neon-glow">Nobilink</span>
-             </div>
-             <p className="text-white/20 text-xs font-medium leading-relaxed max-w-xs mx-auto md:mx-0">
-               Building the future of digital asset extraction with focus on speed, precision, and excellence.
-             </p>
+            <div className="inline-flex items-center gap-3">
+              <div className="bg-red-600 w-8 h-8 rounded-xl flex items-center justify-center font-black text-lg italic border border-white/10">N</div>
+              <span className="text-xl font-black tracking-tighter uppercase italic neon-glow">Nobilink</span>
+            </div>
+            <p className="text-white/20 text-xs font-medium leading-relaxed max-w-xs mx-auto md:mx-0">
+              Building the future of digital asset extraction with focus on speed, precision, and excellence.
+            </p>
           </div>
           <div className="flex flex-col gap-6 text-[11px] font-black tracking-[0.3em] uppercase italic opacity-30">
             <span className="text-white opacity-100">Company</span>
@@ -488,26 +489,26 @@ export default function App() {
         </div>
 
         <div className="space-y-12">
-           <div className="bg-white/5 border border-white/5 rounded-[2rem] p-8 md:p-12 text-center relative overflow-hidden">
-              <div className="absolute inset-0 bg-red-600/5 blur-3xl" />
-              <div className="relative z-10 space-y-6 max-w-4xl mx-auto">
-                <div className="flex items-center justify-center gap-3 text-red-500">
-                  <AlertCircle className="w-5 h-5" />
-                  <span className="text-[10px] font-black tracking-[0.4em] uppercase italic">System Disclaimer</span>
-                </div>
-                <p className="text-white/20 text-[11px] font-bold leading-[1.8] uppercase italic tracking-wider">
-                  ⚠️ This tool is provided for educational and personal use only. 
-                  Nobilink does not host or store any content and is not affiliated with YouTube or Google LLC. 
-                  Users are strictly responsible for their own downloads and compliance with local copyright laws. 
-                  Please respect platform terms of service.
-                </p>
+          <div className="bg-white/5 border border-white/5 rounded-[2rem] p-8 md:p-12 text-center relative overflow-hidden">
+            <div className="absolute inset-0 bg-red-600/5 blur-3xl" />
+            <div className="relative z-10 space-y-6 max-w-4xl mx-auto">
+              <div className="flex items-center justify-center gap-3 text-red-500">
+                <AlertCircle className="w-5 h-5" />
+                <span className="text-[10px] font-black tracking-[0.4em] uppercase italic">System Disclaimer</span>
               </div>
-           </div>
-           
-           <div className="flex flex-col md:flex-row justify-between items-center gap-6 pt-12 border-t border-white/5 text-[10px] font-black tracking-[0.4em] uppercase italic opacity-20">
-             <p>© {new Date().getFullYear()} Nobilink. Engineered for Excellence.</p>
-             <p className="text-red-500/60 opacity-100">Status: All Systems Operational</p>
-           </div>
+              <p className="text-white/20 text-[11px] font-bold leading-[1.8] uppercase italic tracking-wider">
+                ⚠️ This tool is provided for educational and personal use only.
+                Nobilink does not host or store any content and is not affiliated with YouTube or Google LLC.
+                Users are strictly responsible for their own downloads and compliance with local copyright laws.
+                Please respect platform terms of service.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6 pt-12 border-t border-white/5 text-[10px] font-black tracking-[0.4em] uppercase italic opacity-20">
+            <p>© {new Date().getFullYear()} Nobilink. Engineered for Excellence.</p>
+            <p className="text-red-500/60 opacity-100">Status: All Systems Operational</p>
+          </div>
         </div>
       </footer>
     </div>
